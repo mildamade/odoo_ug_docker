@@ -2,27 +2,34 @@ version: '2'
 networks:
   default:
     external:
-      name: nginx-proxy
-  dbpsql-tier:
-    external:
-     name: dbpsql-tier
+     name: nginx-proxy
 
 services:
+  dbugsql:
+    container_name: dbugsql
+    image: postgres:9.5
+    environment:
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - dbugsql:/var/lib/postgresql/data/pgdata
+
   ug.dravom.com:
     container_name: ug.dravom.com
     image: odoo:11.0
     ports:
-      - "8069:8069"
+      - "8086:8069"
     tty: true
     command: -- --dev=reload
 #    command: odoo scaffold /mnt/extra-addons/test_module
     environment:
       - VIRTUAL_PORT=8069
 #     - HTTPS_METHOD=nohttps
-      - VIRTUAL_HOST=ug.dravom.com, dravom.com, www.dravom.com
-      - LETSENCRYPT_HOST=ug.dravom.com, dravom.com, www.dravom.com
+      - VIRTUAL_HOST=ug.dravom.com, www.dravom.com, dravom.com
+      - LETSENCRYPT_HOST=ug.dravom.com, www.dravom.com, dravom.com
       - LETSENCRYPT_EMAIL=milda.dvorak@gmail.com
-      - HOST=dbpsql
+      - HOST=dbugsql
       - USER=odoo
       - PASSWORD=odoo
     hostname: ug.dravom.com
@@ -31,5 +38,7 @@ services:
       - /data/odoo/odoo_ug_docker/o_addons:/mnt/extra-addons
       - /data/odoo/odoo_ug_docker/o_etc:/etc/odoo
     networks:
-      - dbpsql-tier
       - default
+
+volumes:
+  dbugsql:
